@@ -593,16 +593,7 @@ public final class Scus94491BpeSegment {
       }
 
       if(key == GLFW_KEY_F12) {
-        if(!Debugger.isRunning()) {
-          try {
-            Platform.setImplicitExit(false);
-            new Thread(() -> Application.launch(Debugger.class)).start();
-          } catch(final Exception e) {
-            LOGGER.info("Failed to start script debugger", e);
-          }
-        } else {
-          Platform.runLater(Debugger::show);
-        }
+        Main.launchWindow(Debugger.class, Debugger::new);
       }
     });
 
