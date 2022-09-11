@@ -4,9 +4,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import legend.core.Hardware;
-import legend.game.config.Config;
-import legend.game.config.ConfigWindow;
-import legend.game.debugger.Debugger;
 import legend.game.modding.events.EventManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,11 +23,6 @@ public final class Main {
 
   public static void main(final String[] args) {
     EventManager.INSTANCE.getClass(); // Trigger load
-
-    if(!Config.exists()) {
-      launchWindow(ConfigWindow.class, ConfigWindow::new);
-    }
-
     Hardware.start();
   }
 
@@ -49,7 +41,7 @@ public final class Main {
       Platform.runLater(() -> {
         try {
           constructor.get().start(new Stage());
-        } catch(Exception e) {
+        } catch(final Exception e) {
           LOGGER.info("Failed to launch window", e);
         }
       });

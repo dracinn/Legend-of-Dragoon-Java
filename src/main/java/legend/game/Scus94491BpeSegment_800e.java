@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static legend.core.Hardware.CDROM;
+import static legend.core.Hardware.GPU;
 import static legend.core.Hardware.MEMORY;
 import static legend.core.MemoryHelper.getMethodAddress;
 import static legend.game.SInit.executeSInitLoadingStage;
@@ -808,6 +809,10 @@ public final class Scus94491BpeSegment_800e {
 
   @Method(0x800e5d44L)
   public static void main() {
+    if(!Config.exists()) {
+      GPU.guiManager().pushGui(new ConfigGui());
+    }
+
     FUN_800e5d64();
     gameLoop();
   }
