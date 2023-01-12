@@ -40,6 +40,11 @@ public class CharSwapScreen extends MenuScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.CHAR_SWAP;
+  }
+
+  @Override
   protected void render() {
     switch(this.loadingStage) {
       case 0 -> {

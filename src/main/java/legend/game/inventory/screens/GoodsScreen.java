@@ -43,6 +43,11 @@ public class GoodsScreen extends MenuScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.GOODS;
+  }
+
+  @Override
   protected void render() {
     switch(this.loadingStage) {
       case 0 -> {

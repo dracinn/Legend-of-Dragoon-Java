@@ -26,8 +26,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
 
-public class StatusScreen extends MenuScreen {
-  protected int loadingStage;
+public class StatusScreen extends MenuScreen<StatusScreen.State> {
+  protected State state;
 
   private int charSlot;
 
@@ -40,22 +40,32 @@ public class StatusScreen extends MenuScreen {
   }
 
   @Override
+  public MenuId menuId() {
+    return MenuId.STATUS;
+  }
+
+  @Override
+  public State getState() {
+    return this.state;
+  }
+
+  @Override
   protected void render() {
-    switch(this.loadingStage) {
-      case 0 -> {
+    switch(this.state) {
+      case INIT_1 -> {
         scriptStartEffect(2, 10);
-        this.loadingStage++;
+        this.state = State.INIT_2;
       }
 
-      case 1 -> {
+      case INIT_2 -> {
         deallocateRenderables(0xff);
         deallocateRenderables(0);
         renderGlyphs(characterStatusGlyphs_801141a4, 0, 0);
         this.renderStatusMenu(this.charSlot, 0xff);
-        this.loadingStage++;
+        this.state = State.STATUS;
       }
 
-      case 2 -> {
+      case STATUS -> {
         FUN_801034cc(this.charSlot, characterCount_8011d7c4.get());
         this.renderStatusMenu(this.charSlot, 0);
 
@@ -76,7 +86,7 @@ public class StatusScreen extends MenuScreen {
         }
       }
 
-      case 3 -> {
+      case UNLOAD -> {
         FUN_801034cc(this.charSlot, characterCount_8011d7c4.get());
         this.renderStatusMenu(this.charSlot, 0);
         this.unload.run();
@@ -87,7 +97,7 @@ public class StatusScreen extends MenuScreen {
   private void scroll(final int slot) {
     playSound(1);
     this.charSlot = slot;
-    this.loadingStage = 1;
+    this.state = State.INIT_2;
   }
 
   private void renderStatusMenu(final int charSlot, final long a1) {
@@ -133,7 +143,7 @@ public class StatusScreen extends MenuScreen {
 
   @Override
   protected void keyPress(final int key, final int scancode, final int mods) {
-    if(this.loadingStage != 2 || mods != 0) {
+    if(this.state != State.STATUS || mods != 0) {
       return;
     }
 
@@ -152,14 +162,14 @@ public class StatusScreen extends MenuScreen {
 
       case GLFW_KEY_ESCAPE -> {
         playSound(3);
-        this.loadingStage = 3;
+        this.state = State.UNLOAD;
       }
     }
   }
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.loadingStage != 2) {
+    if(this.state != State.STATUS) {
       return;
     }
 
@@ -168,5 +178,12 @@ public class StatusScreen extends MenuScreen {
     }
 
     this.scrollAccumulator += deltaY;
+  }
+
+  public enum State {
+    INIT_1,
+    INIT_2,
+    STATUS,
+    UNLOAD,
   }
 }

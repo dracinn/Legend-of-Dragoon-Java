@@ -63,6 +63,11 @@ public class EquipmentScreen extends MenuScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.EQUIPMENT;
+  }
+
+  @Override
   protected void render() {
     switch(this.loadingStage) {
       case 0:

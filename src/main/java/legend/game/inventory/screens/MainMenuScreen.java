@@ -85,6 +85,11 @@ public class MainMenuScreen extends MenuScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.MAIN_MENU;
+  }
+
+  @Override
   protected void render() {
     switch(this.loadingStage) {
       case 0 -> {

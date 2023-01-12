@@ -49,6 +49,11 @@ public class AdditionsScreen extends MenuScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.ADDITIONS;
+  }
+
+  @Override
   protected void render() {
     switch(this.loadingStage) {
       case 0 -> {

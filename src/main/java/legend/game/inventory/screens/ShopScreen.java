@@ -120,6 +120,11 @@ public class ShopScreen extends MenuScreen {
   private int mouseY;
 
   @Override
+  public MenuId menuId() {
+    return MenuId.SHOP;
+  }
+
+  @Override
   protected void render() {
     switch(this.menuState) {
       case INIT_0 -> {

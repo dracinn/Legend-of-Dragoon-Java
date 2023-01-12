@@ -29,6 +29,11 @@ public class LoadGameScreen extends SaveListScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.LOAD_GAME;
+  }
+
+  @Override
   protected int menuCount() {
     return saves.size();
   }

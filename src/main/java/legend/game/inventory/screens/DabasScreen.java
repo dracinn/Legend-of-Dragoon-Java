@@ -79,6 +79,11 @@ public class DabasScreen extends MenuScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.DABAS;
+  }
+
+  @Override
   protected void render() {
     switch(this.loadingStage) {
       case 0 -> {

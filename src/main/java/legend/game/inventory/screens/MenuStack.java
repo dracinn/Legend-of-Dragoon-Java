@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import legend.core.opengl.Window;
 
+import javax.annotation.Nullable;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -37,6 +38,11 @@ public class MenuStack {
     if(this.screens.isEmpty()) {
       this.removeInputHandlers();
     }
+  }
+
+  @Nullable
+  public MenuScreen getTop() {
+    return this.screens.peek();
   }
 
   public void render() {

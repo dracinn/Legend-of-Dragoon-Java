@@ -51,8 +51,8 @@ import static legend.game.Scus94491BpeSegment_800b.whichMenu_800bdc38;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 
-public class TooManyItemsScreen extends MenuScreen {
-  private MenuState menuState = MenuState._1;
+public class TooManyItemsScreen extends MenuScreen<TooManyItemsScreen.State> {
+  private State state = State.INIT_1;
   private double scrollAccumulator;
   private int mouseX;
   private int mouseY;
@@ -69,9 +69,19 @@ public class TooManyItemsScreen extends MenuScreen {
   private final List<MenuItemStruct04> droppedItems = new ArrayList<>();
 
   @Override
+  public MenuId menuId() {
+    return MenuId.TOO_MANY_ITEMS;
+  }
+
+  @Override
+  public State getState() {
+    return this.state;
+  }
+
+  @Override
   protected void render() {
-    switch(this.menuState) {
-      case _1 -> {
+    switch(this.state) {
+      case INIT_1 -> {
         if(!drgn0_6666FilePtr_800bdc3c.isNull()) {
           recalcInventory();
           FUN_80104738(this.equipment, this.items, 0x1L);
@@ -83,45 +93,42 @@ public class TooManyItemsScreen extends MenuScreen {
             this.droppedItems.add(item);
           }
 
-          this.menuState = MenuState._2;
+          this.state = State.INIT_2;
         }
       }
 
-      case _2 -> {
+      case INIT_2 -> {
         deallocateRenderables(0xff);
         this.invScroll = 0;
         this.invIndex = 0;
         this.dropIndex = 0;
-        this.menuState = MenuState._3;
-      }
 
-      case _3 -> {
         deallocateRenderables(0);
-        this.FUN_8010fd80(true, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
+        this.render(true, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
         scriptStartEffect(2, 10);
-        this.menuState = MenuState._4;
+        this.state = State.REPLACE_MESSAGE_BOX;
       }
 
-      case _4 -> {
-        menuStack.pushScreen(new MessageBoxScreen(new LodString("Too many items. Replace?"), 2, result -> this.menuState = result == MessageBoxResult.YES ? MenuState._6 : MenuState._10));
-        this.menuState = MenuState._5;
+      case REPLACE_MESSAGE_BOX -> {
+        menuStack.pushScreen(new MessageBoxScreen(new LodString("Too many items. Replace?"), 2, result -> this.state = result == MessageBoxResult.YES ? State.REPLACE_INIT : State.DISCARD));
+        this.state = State.ITEMS_TO_DROP_LIST;
       }
 
-      case _5 ->
-        this.FUN_8010fd80(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
+      case ITEMS_TO_DROP_LIST ->
+        this.render(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
 
-      case _6 -> {
+      case REPLACE_INIT -> {
         this.dropIndex = 0;
         final Renderable58 renderable2 = allocateUiElement(124, 124, 42, this.FUN_8010f178(0));
         this.renderable_8011e200 = renderable2;
         FUN_80104b60(renderable2);
         deallocateRenderables(0);
-        this.FUN_8010fd80(true, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0x1L);
-        this.menuState = MenuState._8;
+        this.render(true, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0x1L);
+        this.state = State.REPLACE;
       }
 
-      case _8 ->
-        this.FUN_8010fd80(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0x1L);
+      case REPLACE ->
+        this.render(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0x1L);
 
       case _9 -> {
         final int slotCount;
@@ -155,33 +162,33 @@ public class TooManyItemsScreen extends MenuScreen {
           }
         }
 
-        this.FUN_8010fd80(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0x3L);
+        this.render(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0x3L);
       }
 
-      case _10 -> {
-        this.FUN_8010fd80(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
+      case DISCARD -> {
+        this.render(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
 
         menuStack.pushScreen(new MessageBoxScreen(new LodString("Discard extra items?"), 2, result -> {
           if(result == MessageBoxResult.YES) {
             for(final MenuItemStruct04 item : this.droppedItems) {
               if(itemCantBeDiscarded(item.itemId_00)) {
-                menuStack.pushScreen(new MessageBoxScreen(This_item_cannot_be_thrown_away_8011c2a8, 0, result1 -> this.menuState = MenuState._6));
+                menuStack.pushScreen(new MessageBoxScreen(This_item_cannot_be_thrown_away_8011c2a8, 0, result1 -> this.state = State.REPLACE_INIT));
                 return;
               }
             }
 
             scriptStartEffect(1, 10);
-            this.menuState = MenuState._12;
+            this.state = State.UNLOAD;
           } else {
-            this.menuState = MenuState._6;
+            this.state = State.REPLACE_INIT;
           }
         }));
 
-        this.menuState = MenuState._5;
+        this.state = State.ITEMS_TO_DROP_LIST;
       }
 
-      case _12 -> {
-        this.FUN_8010fd80(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
+      case UNLOAD -> {
+        this.render(false, this.droppedItems.get(this.dropIndex).itemId_00, this.invIndex, this.invScroll, 0);
 
         if(_800bb168.get() >= 0xff) {
           scriptStartEffect(2, 10);
@@ -199,7 +206,7 @@ public class TooManyItemsScreen extends MenuScreen {
     }
   }
 
-  private void FUN_8010fd80(final boolean allocate, final int itemId, final int slotIndex, final int slotScroll, final long a4) {
+  private void render(final boolean allocate, final int itemId, final int slotIndex, final int slotScroll, final long a4) {
     if(allocate) {
       renderGlyphs(glyphs_80114548, 0, 0);
       saveListUpArrow_800bdb94 = allocateUiElement(61, 68, 358, this.FUN_8010f178(0));
@@ -266,7 +273,7 @@ public class TooManyItemsScreen extends MenuScreen {
     this.mouseX = x;
     this.mouseY = y;
 
-    if(this.menuState == MenuState._8) {
+    if(this.state == State.REPLACE) {
       for(int i = 0; i < itemsDroppedByEnemiesCount_800bc978.get(); i++) {
         if(this.dropIndex != i && MathHelper.inBox(x, y, 9, this.FUN_8010f178(i), 171, 17)) {
           playSound(1);
@@ -274,7 +281,7 @@ public class TooManyItemsScreen extends MenuScreen {
           this.renderable_8011e200.y_44 = this.FUN_8010f178(i);
         }
       }
-    } else if(this.menuState == MenuState._9) {
+    } else if(this.state == State._9) {
       for(int i = 0; i < 7; i++) {
         if(this.invIndex != i && MathHelper.inBox(x, y, 188, this.FUN_8010f178(i), 171, 17)) {
           playSound(1);
@@ -287,7 +294,7 @@ public class TooManyItemsScreen extends MenuScreen {
 
   @Override
   protected void mouseClick(final int x, final int y, final int button, final int mods) {
-    if(this.menuState == MenuState._8) {
+    if(this.state == State.REPLACE) {
       for(int i = 0; i < itemsDroppedByEnemiesCount_800bc978.get(); i++) {
         if(MathHelper.inBox(x, y, 9, this.FUN_8010f178(i), 171, 17)) {
           playSound(2);
@@ -300,10 +307,10 @@ public class TooManyItemsScreen extends MenuScreen {
           this.renderable_8011e204 = renderable3;
           FUN_80104b60(renderable3);
           playSound(2);
-          this.menuState = MenuState._9;
+          this.state = State._9;
         }
       }
-    } else if(this.menuState == MenuState._9) {
+    } else if(this.state == State._9) {
       for(int i = 0; i < 7; i++) {
         if(MathHelper.inBox(x, y, 188, this.FUN_8010f178(i), 171, 17)) {
           playSound(2);
@@ -333,7 +340,7 @@ public class TooManyItemsScreen extends MenuScreen {
 
             playSound(2);
             unloadRenderable(this.renderable_8011e204);
-            this.menuState = MenuState._8;
+            this.state = State.REPLACE;
 
             if(isItem != 0) {
               setInventoryFromDisplay(this.items, gameState_800babc8.items_2e9, gameState_800babc8.itemCount_1e6.get());
@@ -348,7 +355,7 @@ public class TooManyItemsScreen extends MenuScreen {
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.menuState != MenuState._9) {
+    if(this.state != State._9) {
       return;
     }
 
@@ -366,16 +373,16 @@ public class TooManyItemsScreen extends MenuScreen {
     }
 
     if(key == GLFW_KEY_ESCAPE) {
-      if(this.menuState == MenuState._8) {
+      if(this.state == State.REPLACE) {
         playSound(3);
         unloadRenderable(this.renderable_8011e200);
-        this.menuState = MenuState._10;
-      } else if(this.menuState == MenuState._9) {
+        this.state = State.DISCARD;
+      } else if(this.state == State._9) {
         playSound(3);
         unloadRenderable(this.renderable_8011e204);
-        this.menuState = MenuState._8;
+        this.state = State.REPLACE;
       }
-    } else if(key == GLFW_KEY_S && this.menuState == MenuState._9) {
+    } else if(key == GLFW_KEY_S && this.state == State._9) {
       playSound(2);
 
       if(this.droppedItems.get(this.dropIndex).itemId_00 < 0xc0) {
@@ -386,16 +393,15 @@ public class TooManyItemsScreen extends MenuScreen {
     }
   }
 
-  public enum MenuState {
-    _1,
-    _2,
-    _3,
-    _4,
-    _5,
-    _6,
-    _8,
+  public enum State {
+    INIT_1,
+    INIT_2,
+    REPLACE_MESSAGE_BOX,
+    ITEMS_TO_DROP_LIST,
+    REPLACE_INIT,
+    REPLACE,
     _9,
-    _10,
-    _12,
+    DISCARD,
+    UNLOAD,
   }
 }

@@ -31,6 +31,11 @@ public class MessageBoxScreen extends MenuScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.MESSAGE_BOX;
+  }
+
+  @Override
   protected void render() {
     messageBox(this.messageBox);
 

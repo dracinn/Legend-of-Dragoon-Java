@@ -27,6 +27,11 @@ public class SaveGameScreen extends SaveListScreen {
   }
 
   @Override
+  protected MenuId menuId() {
+    return MenuId.SAVE_GAME;
+  }
+
+  @Override
   protected int menuCount() {
     return saves.size() + 1;
   }

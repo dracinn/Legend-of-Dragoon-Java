@@ -59,8 +59,8 @@ import static legend.game.Scus94491BpeSegment_800b.saveListUpArrow_800bdb94;
 import static legend.game.Scus94491BpeSegment_800b.stats_800be5f8;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
-public class UseItemScreen extends MenuScreen {
-  private int loadingStage;
+public class UseItemScreen extends MenuScreen<UseItemScreen.State> {
+  private State state;
   private double scrollAccumulator;
   private final Runnable unload;
 
@@ -81,30 +81,40 @@ public class UseItemScreen extends MenuScreen {
   }
 
   @Override
+  public MenuId menuId() {
+    return MenuId.USE_ITEM;
+  }
+
+  @Override
+  public State getState() {
+    return this.state;
+  }
+
+  @Override
   protected void render() {
-    switch(this.loadingStage) {
-      case 0 -> {
+    switch(this.state) {
+      case INIT_1 -> {
         scriptStartEffect(2, 10);
         this.charSlot = 0;
         this.slotScroll = 0;
         this.selectedSlot = 0;
         this.useItemResponse._00 = 0;
         this.useItemResponse.value_04 = 0;
-        this.loadingStage++;
+        this.state = State.INIT_2;
       }
 
-      case 1 -> {
+      case INIT_2 -> {
         deallocateRenderables(0xff);
         renderGlyphs(useItemGlyphs_801141fc, 0, 0);
         this.itemHighlight = allocateUiElement(0x77, 0x77, 42, getItemSlotY(this.selectedSlot));
         FUN_80104b60(this.itemHighlight);
         this.itemCount = this.getUsableItemsInMenu();
         this.renderUseItemMenu(this.selectedSlot, this.slotScroll, 0xff);
-        this.loadingStage++;
+        this.state = State.SELECT_CHARACTER;
       }
 
       // Render menu
-      case 2 -> {
+      case SELECT_ITEM -> {
         this.renderUseItemMenu(this.selectedSlot, this.slotScroll, 0);
 
         if(this.scrollAccumulator >= 1.0d) {
@@ -125,10 +135,10 @@ public class UseItemScreen extends MenuScreen {
       }
 
       // Select character on whom to use item
-      case 3 -> this.renderUseItemMenu(this.selectedSlot, this.slotScroll, 0);
+      case SELECT_CHARACTER -> this.renderUseItemMenu(this.selectedSlot, this.slotScroll, 0);
 
       // Fade out
-      case 100 -> {
+      case UNLOAD -> {
         this.renderUseItemMenu(this.selectedSlot, this.slotScroll, 0);
         saveListDownArrow_800bdb98 = null;
         saveListUpArrow_800bdb94 = null;
@@ -223,7 +233,7 @@ public class UseItemScreen extends MenuScreen {
 
   @Override
   protected void mouseMove(final int x, final int y) {
-    if(this.loadingStage == 2) {
+    if(this.state == State.SELECT_ITEM) {
       for(int slot = 0; slot < Math.min(5, this.itemCount - this.slotScroll); slot++) {
         if(this.selectedSlot != slot && MathHelper.inBox(x, y, 33, getItemSlotY(slot), 136, 17)) {
           playSound(1);
@@ -231,7 +241,7 @@ public class UseItemScreen extends MenuScreen {
           this.itemHighlight.y_44 = getItemSlotY(this.selectedSlot);
         }
       }
-    } else if(this.loadingStage == 3 && (this.itemUseFlags & 0x2) == 0) {
+    } else if(this.state == State.SELECT_CHARACTER && (this.itemUseFlags & 0x2) == 0) {
       for(int slot = 0; slot < characterCount_8011d7c4.get(); slot++) {
         if(this.charSlot != slot && MathHelper.inBox(x, y, getCharacterPortraitX(slot) - 11, 110, 48, 112)) {
           playSound(1);
@@ -248,7 +258,7 @@ public class UseItemScreen extends MenuScreen {
       return;
     }
 
-    if(this.loadingStage == 2) {
+    if(this.state == State.SELECT_ITEM) {
       for(int slot = 0; slot < Math.min(5, this.itemCount - this.slotScroll); slot++) {
         if(MathHelper.inBox(x, y, 33, getItemSlotY(slot), 136, 17)) {
           this.selectedSlot = slot;
@@ -268,13 +278,13 @@ public class UseItemScreen extends MenuScreen {
             }
 
             playSound(2);
-            this.loadingStage = 3;
+            this.state = State.SELECT_CHARACTER;
           } else {
             playSound(40);
           }
         }
       }
-    } else if(this.loadingStage == 3) {
+    } else if(this.state == State.SELECT_CHARACTER) {
       for(int slot = 0; slot < characterCount_8011d7c4.get(); slot++) {
         if(MathHelper.inBox(x, y, getCharacterPortraitX(slot) - 11, 110, 48, 112)) {
           if((this.itemUseFlags & 0x2) == 0) {
@@ -299,7 +309,7 @@ public class UseItemScreen extends MenuScreen {
           loadCharacterStats(0);
           this.getItemResponseText(this.useItemResponse);
           menuStack.pushScreen(new MessageBoxScreen(this.useItemResponse.string_08, 0, result -> { }));
-          this.loadingStage = 1;
+          this.state = State.INIT_2;
         }
       }
     }
@@ -369,7 +379,7 @@ public class UseItemScreen extends MenuScreen {
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.loadingStage != 2) {
+    if(this.state != State.SELECT_ITEM) {
       return;
     }
 
@@ -386,12 +396,12 @@ public class UseItemScreen extends MenuScreen {
       return;
     }
 
-    if(this.loadingStage == 2) {
+    if(this.state == State.SELECT_ITEM) {
       if(key == GLFW_KEY_ESCAPE) {
         playSound(3);
-        this.loadingStage = 100;
+        this.state = State.UNLOAD;
       }
-    } else if(this.loadingStage == 3) {
+    } else if(this.state == State.SELECT_CHARACTER) {
       if((this.itemUseFlags & 0x2) == 0) {
         unloadRenderable(this.charHighlight);
       } else {
@@ -401,7 +411,15 @@ public class UseItemScreen extends MenuScreen {
       }
 
       playSound(3);
-      this.loadingStage = 2;
+      this.state = State.SELECT_ITEM;
     }
+  }
+
+  public enum State {
+    INIT_1,
+    INIT_2,
+    SELECT_ITEM,
+    SELECT_CHARACTER,
+    UNLOAD,
   }
 }
