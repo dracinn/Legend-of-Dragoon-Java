@@ -25,8 +25,8 @@ import static legend.game.Scus94491BpeSegment_800b.saveListDownArrow_800bdb98;
 import static legend.game.Scus94491BpeSegment_800b.saveListUpArrow_800bdb94;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
-public class GoodsScreen extends MenuScreen {
-  private int loadingStage;
+public class GoodsScreen extends MenuScreen<GoodsScreen.State> {
+  private State loadingStage;
   private double scrollAccumulator;
   private final Runnable unload;
 
@@ -43,14 +43,19 @@ public class GoodsScreen extends MenuScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.GOODS;
+  }
+
+  @Override
+  public State getState() {
+    return this.loadingStage;
   }
 
   @Override
   protected void render() {
     switch(this.loadingStage) {
-      case 0 -> {
+      case INIT -> {
         scriptStartEffect(2, 10);
         deallocateRenderables(0xff);
         renderGlyphs(goodsGlyphs_801141c4, 0, 0);
@@ -70,10 +75,10 @@ public class GoodsScreen extends MenuScreen {
         this.highlight = allocateUiElement(0x76, 0x76, this.getSlotX(0), this.getSlotY(this.selectedSlot) + 32);
         FUN_80104b60(this.highlight);
         this.renderGoods(this.selectedSlot, this.slotScroll, 0xff);
-        this.loadingStage++;
+        this.loadingStage = State.GOODS;
       }
 
-      case 1 -> {
+      case GOODS -> {
         this.renderGoods(this.selectedSlot, this.slotScroll, 0);
 
         if(this.scrollAccumulator >= 1.0d) {
@@ -94,7 +99,7 @@ public class GoodsScreen extends MenuScreen {
       }
 
       // Fade out
-      case 100 -> {
+      case UNLOAD -> {
         this.renderGoods(this.selectedSlot, this.slotScroll, 0);
 
         saveListDownArrow_800bdb98 = null;
@@ -163,7 +168,7 @@ public class GoodsScreen extends MenuScreen {
 
   @Override
   protected void mouseMove(final int x, final int y) {
-    if(this.loadingStage != 1) {
+    if(this.loadingStage != State.GOODS) {
       return;
     }
 
@@ -184,19 +189,19 @@ public class GoodsScreen extends MenuScreen {
 
   @Override
   protected void keyPress(final int key, final int scancode, final int mods) {
-    if(this.loadingStage != 1 || mods != 0) {
+    if(this.loadingStage != State.GOODS || mods != 0) {
       return;
     }
 
     if(key == GLFW_KEY_ESCAPE) {
       playSound(3);
-      this.loadingStage = 100;
+      this.loadingStage = State.UNLOAD;
     }
   }
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.loadingStage != 1) {
+    if(this.loadingStage != State.GOODS) {
       return;
     }
 
@@ -205,5 +210,11 @@ public class GoodsScreen extends MenuScreen {
     }
 
     this.scrollAccumulator += deltaY;
+  }
+
+  public enum State {
+    INIT,
+    GOODS,
+    UNLOAD,
   }
 }

@@ -15,7 +15,7 @@ import static legend.game.SItem.setMessageBoxOptions;
 import static legend.game.SItem.setMessageBoxText;
 import static legend.game.Scus94491BpeSegment_8002.playSound;
 
-public class MessageBoxScreen extends MenuScreen {
+public class MessageBoxScreen extends MenuScreen<MessageBoxScreen.State> {
   private final MessageBox20 messageBox = new MessageBox20();
   private final Consumer<MessageBoxResult> onResult;
   private MessageBoxResult result;
@@ -31,15 +31,20 @@ public class MessageBoxScreen extends MenuScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.MESSAGE_BOX;
+  }
+
+  @Override
+  public State getState() {
+    return this.messageBox.state_0c;
   }
 
   @Override
   protected void render() {
     messageBox(this.messageBox);
 
-    if(this.messageBox.state_0c == 0) {
+    if(this.messageBox.state_0c == State._0) {
       menuStack.popScreen();
       this.onResult.accept(this.result);
     }
@@ -47,7 +52,7 @@ public class MessageBoxScreen extends MenuScreen {
 
   @Override
   protected void mouseMove(final int x, final int y) {
-    if(this.messageBox.state_0c != 3) {
+    if(this.messageBox.state_0c != State._3) {
       return;
     }
 
@@ -75,14 +80,14 @@ public class MessageBoxScreen extends MenuScreen {
 
   @Override
   protected void mouseClick(final int x, final int y, final int button, final int mods) {
-    if(this.messageBox.state_0c != 3) {
+    if(this.messageBox.state_0c != State._3) {
       return;
     }
 
     if(this.messageBox.type_15 == 0) {
       playSound(2);
       this.result = MessageBoxResult.YES;
-      this.messageBox.state_0c = 4;
+      this.messageBox.state_0c = State._4;
     } else if(this.messageBox.type_15 == 2) {
       // Yes/no
       final int selectionY = this.messageBox.y_1e + 7 + this.messageBox.text_00.length * 14 + 7;
@@ -96,7 +101,7 @@ public class MessageBoxScreen extends MenuScreen {
         }
 
         this.result = MessageBoxResult.YES;
-        this.messageBox.state_0c = 4;
+        this.messageBox.state_0c = State._4;
       } else if(MathHelper.inBox(x, y, this.messageBox.x_1c + 4, selectionY + 14, 112, 14)) {
         playSound(2);
         this.messageBox.menuIndex_18 = 1;
@@ -106,7 +111,7 @@ public class MessageBoxScreen extends MenuScreen {
         }
 
         this.result = MessageBoxResult.NO;
-        this.messageBox.state_0c = 4;
+        this.messageBox.state_0c = State._4;
       }
     }
   }
@@ -114,5 +119,28 @@ public class MessageBoxScreen extends MenuScreen {
   @Override
   protected boolean propagateRender() {
     return true;
+  }
+
+  public enum State {
+    _0,
+    _1,
+    _2,
+    _3,
+    _4,
+    _5,
+    _6,
+    ;
+
+    public State next() {
+      return switch(this) {
+        case _0 -> _1;
+        case _1 -> _2;
+        case _2 -> _3;
+        case _3 -> _4;
+        case _4 -> _5;
+        case _5 -> _6;
+        case _6 -> throw new IllegalStateException("Can't increment state 6");
+      };
+    }
   }
 }

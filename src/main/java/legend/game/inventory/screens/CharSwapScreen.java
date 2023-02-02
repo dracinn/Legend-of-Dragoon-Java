@@ -26,8 +26,8 @@ import static legend.game.Scus94491BpeSegment_800b.secondaryCharIndices_800bdbf8
 import static legend.game.Scus94491BpeSegment_800b.stats_800be5f8;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
-public class CharSwapScreen extends MenuScreen {
-  private int loadingStage;
+public class CharSwapScreen extends MenuScreen<CharSwapScreen.State> {
+  private State loadingStage;
   private final Runnable unload;
 
   private int primaryCharIndex;
@@ -40,33 +40,46 @@ public class CharSwapScreen extends MenuScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.CHAR_SWAP;
+  }
+
+  @Override
+  public State getState() {
+    return this.loadingStage;
+  }
+
+  public enum State {
+    INIT_1,
+    INIT_2,
+    SELECT_MAIN_CHAR,
+    SELECT_SECONDARY_CHAR,
+    UNLOAD,
   }
 
   @Override
   protected void render() {
     switch(this.loadingStage) {
-      case 0 -> {
+      case INIT_1 -> {
         scriptStartEffect(2, 10);
         this.primaryCharIndex = 0;
         this.secondaryCharIndex = 0;
-        this.loadingStage++;
+        this.loadingStage = State.INIT_2;
       }
 
-      case 1 -> {
+      case INIT_2 -> {
         deallocateRenderables(0xff);
         renderGlyphs(charSwapGlyphs_80114160, 0, 0);
         this.primaryCharHighlight = allocateUiElement(0x7f, 0x7f, 16, getSlotY(this.primaryCharIndex));
         FUN_80104b60(this.primaryCharHighlight);
         this.renderCharacterSwapScreen(0xff);
-        this.loadingStage++;
+        this.loadingStage = State.SELECT_MAIN_CHAR;
       }
 
-      case 2, 3 -> this.renderCharacterSwapScreen(0);
+      case SELECT_MAIN_CHAR, SELECT_SECONDARY_CHAR -> this.renderCharacterSwapScreen(0);
 
       // Fade out
-      case 100 -> {
+      case UNLOAD -> {
         this.renderCharacterSwapScreen(0);
         this.unload.run();
       }
@@ -139,7 +152,7 @@ public class CharSwapScreen extends MenuScreen {
 
   @Override
   protected void mouseMove(final int x, final int y) {
-    if(this.loadingStage == 2) {
+    if(this.loadingStage == State.SELECT_MAIN_CHAR) {
       for(int i = 0; i < 3; i++) {
         if(this.primaryCharIndex != i && MathHelper.inBox(x, y, 8, getSlotY(i), 174, 65)) {
           playSound(1);
@@ -147,7 +160,7 @@ public class CharSwapScreen extends MenuScreen {
           this.primaryCharHighlight.y_44 = getSlotY(i);
         }
       }
-    } else if(this.loadingStage == 3) {
+    } else if(this.loadingStage == State.SELECT_SECONDARY_CHAR) {
       for(int i = 0; i < 6; i++) {
         if(this.secondaryCharIndex != i && MathHelper.inBox(x, y, this.getSecondaryCharX(i) - 8, this.getSecondaryCharY(i), 57, 102)) {
           playSound(1);
@@ -161,7 +174,7 @@ public class CharSwapScreen extends MenuScreen {
 
   @Override
   protected void mouseClick(final int x, final int y, final int button, final int mods) {
-    if(this.loadingStage == 2) {
+    if(this.loadingStage == State.SELECT_MAIN_CHAR) {
       for(int i = 0; i < 3; i++) {
         if(MathHelper.inBox(x, y, 8, getSlotY(i), 174, 65)) {
           playSound(2);
@@ -173,13 +186,13 @@ public class CharSwapScreen extends MenuScreen {
             playSound(2);
             this.secondaryCharHighlight = allocateUiElement(0x80, 0x80, this.getSecondaryCharX(this.secondaryCharIndex), this.getSecondaryCharY(this.secondaryCharIndex));
             FUN_80104b60(this.secondaryCharHighlight);
-            this.loadingStage = 3;
+            this.loadingStage = State.SELECT_SECONDARY_CHAR;
           } else {
             playSound(40);
           }
         }
       }
-    } else if(this.loadingStage == 3) {
+    } else if(this.loadingStage == State.SELECT_SECONDARY_CHAR) {
       for(int i = 0; i < 6; i++) {
         if(MathHelper.inBox(x, y, this.getSecondaryCharX(i) - 8, this.getSecondaryCharY(i), 57, 102)) {
           playSound(1);
@@ -201,7 +214,7 @@ public class CharSwapScreen extends MenuScreen {
             final int charIndex = gameState_800babc8.charIndex_88.get(this.primaryCharIndex).get();
             gameState_800babc8.charIndex_88.get(this.primaryCharIndex).set(secondaryCharIndex);
             secondaryCharIndices_800bdbf8.get(this.secondaryCharIndex).set(charIndex);
-            this.loadingStage = 1;
+            this.loadingStage = State.INIT_2;
           } else {
             playSound(40);
           }
@@ -214,16 +227,16 @@ public class CharSwapScreen extends MenuScreen {
   protected void keyPress(final int key, final int scancode, final int mods) {
     super.keyPress(key, scancode, mods);
 
-    if(this.loadingStage == 2) {
+    if(this.loadingStage == State.SELECT_MAIN_CHAR) {
       if(key == GLFW_KEY_ESCAPE) {
         playSound(3);
-        this.loadingStage = 100;
+        this.loadingStage = State.UNLOAD;
       }
-    } else if(this.loadingStage == 3) {
+    } else if(this.loadingStage == State.SELECT_SECONDARY_CHAR) {
       if(key == GLFW_KEY_ESCAPE) {
         playSound(3);
         unloadRenderable(this.secondaryCharHighlight);
-        this.loadingStage = 2;
+        this.loadingStage = State.SELECT_MAIN_CHAR;
       }
     }
   }

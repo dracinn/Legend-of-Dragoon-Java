@@ -85,7 +85,7 @@ public class TooManyItemsScreen extends MenuScreen<TooManyItemsScreen.State> {
         if(!drgn0_6666FilePtr_800bdc3c.isNull()) {
           recalcInventory();
           FUN_80104738(this.equipment, this.items, 0x1L);
-          messageBox_8011dc90.state_0c = 0;
+          messageBox_8011dc90.state_0c = MessageBoxScreen.State._0;
 
           for(int itemIndex = 0; itemIndex < itemsDroppedByEnemiesCount_800bc978.get(); itemIndex++) {
             final MenuItemStruct04 item = new MenuItemStruct04();

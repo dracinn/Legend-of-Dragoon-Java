@@ -81,9 +81,9 @@ import static legend.game.Scus94491BpeSegment_800b.textZ_800bdf00;
 import static legend.game.Scus94491BpeSegment_800b.whichMenu_800bdc38;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
-public class ShopScreen extends MenuScreen {
-  private MenuState menuState = MenuState.INIT_0;
-  private MenuState confirmDest;
+public class ShopScreen extends MenuScreen<ShopScreen.State> {
+  private State state = State.INIT_0;
+  private State confirmDest;
 
   private int equipCharIndex;
   private int menuIndex_8011e0dc;
@@ -125,21 +125,26 @@ public class ShopScreen extends MenuScreen {
   }
 
   @Override
+  public State getState() {
+    return this.state;
+  }
+
+  @Override
   protected void render() {
-    switch(this.menuState) {
+    switch(this.state) {
       case INIT_0 -> {
         Arrays.setAll(this.menuItems, i -> new MenuItemStruct04());
         loadCharacterStats(0);
         this.menuIndex_8011e0dc = 0;
         this.menuIndex_8011e0e0 = 0;
         this.menuScroll_8011e0e4 = 0;
-        this.menuState = MenuState.AWAIT_INIT_1;
+        this.state = State.AWAIT_INIT_1;
       }
 
       case AWAIT_INIT_1 -> {
         if(!drgn0_6666FilePtr_800bdc3c.isNull()) {
           scriptStartEffect(2, 10);
-          this.menuState = MenuState.INIT_2;
+          this.state = State.INIT_2;
         }
       }
 
@@ -178,7 +183,7 @@ public class ShopScreen extends MenuScreen {
 
         this.shopType = shops_800f4930.get(shopId_8007a3b4.get()).shopType_00.get() & 1;
         this.renderShopMenu(this.menuIndex_8011e0dc, this.shopType);
-        this.menuState = MenuState.RENDER_3;
+        this.state = State.RENDER_3;
       }
 
       case RENDER_3 ->
@@ -267,13 +272,13 @@ public class ShopScreen extends MenuScreen {
       }
 
       case _16, _17 -> {
-        if(this.menuState == MenuState._16) {
+        if(this.state == State._16) {
           scriptStartEffect(1, 10);
-          this.menuState = MenuState._17;
+          this.state = State._17;
         }
 
         if(_800bb168.get() >= 0xff) {
-          this.menuState = this.confirmDest;
+          this.state = this.confirmDest;
         }
 
         this.renderShopMenu(this.menuIndex_8011e0dc, this.shopType);
@@ -500,8 +505,8 @@ public class ShopScreen extends MenuScreen {
     return slot * 16 + 58;
   }
 
-  private void FUN_8010a844(final MenuState nextMenuState) {
-    this.menuState = MenuState._16;
+  private void FUN_8010a844(final State nextMenuState) {
+    this.state = State._16;
     this.confirmDest = nextMenuState;
   }
 
@@ -510,7 +515,7 @@ public class ShopScreen extends MenuScreen {
     this.mouseX = x;
     this.mouseY = y;
 
-    if(this.menuState == MenuState.RENDER_3) {
+    if(this.state == State.RENDER_3) {
       for(int i = 0; i < 4; i++) {
         if(this.menuIndex_8011e0dc != i && MathHelper.inBox(x, y, 41, this.getShopMenuYOffset(i), 59, 16)) {
           playSound(1);
@@ -521,7 +526,7 @@ public class ShopScreen extends MenuScreen {
           this.selectedMenuOptionRenderablePtr_800bdbe0.y_44 = this.getShopMenuYOffset(i);
         }
       }
-    } else if(this.menuState == MenuState.BUY_4) {
+    } else if(this.state == State.BUY_4) {
       for(int i = 0; i < 6; i++) {
         if(this.menuIndex_8011e0e0 != i && MathHelper.inBox(this.mouseX, this.mouseY, 138, FUN_8010a808(i) - 2, 220, 17)) {
           playSound(1);
@@ -533,7 +538,7 @@ public class ShopScreen extends MenuScreen {
           }
         }
       }
-    } else if(this.menuState == MenuState.BUY_SELECT_CHAR_5) {
+    } else if(this.state == State.BUY_SELECT_CHAR_5) {
       for(int i = 0; i < characterCount_8011d7c4.get(); i++) {
         if(this.equipCharIndex != i && MathHelper.inBox(x, y, this.FUN_8010a818(i) - 9, 174, 50, 48)) {
           playSound(1);
@@ -541,7 +546,7 @@ public class ShopScreen extends MenuScreen {
           this.charHighlight.x_40 = this.FUN_8010a818(this.equipCharIndex);
         }
       }
-    } else if(this.menuState == MenuState.SELL_10) {
+    } else if(this.state == State.SELL_10) {
       for(int i = 0; i < 6; i++) {
         if(this.menuIndex_8011e0e0 != i && MathHelper.inBox(this.mouseX, this.mouseY, 138, FUN_8010a808(i) - 2, 220, 17)) {
           playSound(1);
@@ -554,7 +559,7 @@ public class ShopScreen extends MenuScreen {
 
   @Override
   protected void mouseClick(final int x, final int y, final int button, final int mods) {
-    if(this.menuState == MenuState.RENDER_3) {
+    if(this.state == State.RENDER_3) {
       for(int i = 0; i < 4; i++) {
         if(MathHelper.inBox(x, y, 41, this.getShopMenuYOffset(i), 59, 16)) {
           playSound(2);
@@ -575,7 +580,7 @@ public class ShopScreen extends MenuScreen {
 
               this.renderable_8011e0f0 = allocateUiElement(0x3d, 0x44, 358, FUN_8010a808(0));
               this.renderable_8011e0f4 = allocateUiElement(0x35, 0x3c, 358, FUN_8010a808(5));
-              this.menuState = MenuState.BUY_4;
+              this.state = State.BUY_4;
             }
 
             case 1 -> { // Sell
@@ -590,7 +595,7 @@ public class ShopScreen extends MenuScreen {
                     this.shopType2 = 0;
 
                     if(gameState_800babc8.equipmentCount_1e4.get() != 0) {
-                      this.menuState = MenuState.SELL_10;
+                      this.state = State.SELL_10;
                       this.selectedMenuOptionRenderablePtr_800bdbe4 = allocateUiElement(0x7b, 0x7b, 170, FUN_8010a808(0));
                       FUN_80104b60(this.selectedMenuOptionRenderablePtr_800bdbe4);
                       this.FUN_8010a864(gameState_800babc8.equipment_1e8.get(0).get());
@@ -605,7 +610,7 @@ public class ShopScreen extends MenuScreen {
                     this.menuIndex_8011e0e0 = 0;
 
                     if(gameState_800babc8.itemCount_1e6.get() != 0) {
-                      this.menuState = MenuState.SELL_10;
+                      this.state = State.SELL_10;
                       this.selectedMenuOptionRenderablePtr_800bdbe4 = allocateUiElement(0x7b, 0x7b, 170, FUN_8010a808(0));
                       FUN_80104b60(this.selectedMenuOptionRenderablePtr_800bdbe4);
                     } else {
@@ -620,15 +625,15 @@ public class ShopScreen extends MenuScreen {
               menuStack.pushScreen(new ItemListScreen(() -> {
                 menuStack.popScreen();
                 scriptStartEffect(2, 10);
-                this.menuState = MenuState.INIT_2;
+                this.state = State.INIT_2;
               }));
 
             case 3 -> // Leave
-              this.FUN_8010a844(MenuState.UNLOAD_19);
+              this.FUN_8010a844(State.UNLOAD_19);
           }
         }
       }
-    } else if(this.menuState == MenuState.BUY_4) {
+    } else if(this.state == State.BUY_4) {
       for(int i = 0; i < 6; i++) {
         if(MathHelper.inBox(this.mouseX, this.mouseY, 138, FUN_8010a808(i) - 2, 220, 17)) {
           playSound(2);
@@ -667,13 +672,13 @@ public class ShopScreen extends MenuScreen {
               } else {
                 this.charHighlight = allocateUiElement(0x83, 0x83, this.FUN_8010a818(this.equipCharIndex), 174);
                 FUN_80104b60(this.charHighlight);
-                this.menuState = MenuState.BUY_SELECT_CHAR_5;
+                this.state = State.BUY_SELECT_CHAR_5;
               }
             }
           }
         }
       }
-    } else if(this.menuState == MenuState.BUY_SELECT_CHAR_5) {
+    } else if(this.state == State.BUY_SELECT_CHAR_5) {
       for(int i = 0; i < characterCount_8011d7c4.get(); i++) {
         if(MathHelper.inBox(x, y, this.FUN_8010a818(i) - 9, 174, 50, 48)) {
           playSound(2);
@@ -691,7 +696,7 @@ public class ShopScreen extends MenuScreen {
                   giveItem(this.menuItems[this.menuScroll_8011e0e4 + this.menuIndex_8011e0e0].itemId_00);
                 }
 
-                this.menuState = MenuState.BUY_4;
+                this.state = State.BUY_4;
                 unloadRenderable(this.charHighlight);
                 this.charHighlight = null;
               }));
@@ -699,7 +704,7 @@ public class ShopScreen extends MenuScreen {
           }));
         }
       }
-    } else if(this.menuState == MenuState.SELL_10) {
+    } else if(this.state == State.SELL_10) {
       for(int i = 0; i < 6; i++) {
         if(MathHelper.inBox(this.mouseX, this.mouseY, 138, FUN_8010a808(i) - 2, 220, 17)) {
           playSound(2);
@@ -738,7 +743,7 @@ public class ShopScreen extends MenuScreen {
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.menuState != MenuState.BUY_4 && this.menuState != MenuState.SELL_10) {
+    if(this.state != State.BUY_4 && this.state != State.SELL_10) {
       return;
     }
 
@@ -756,26 +761,26 @@ public class ShopScreen extends MenuScreen {
     }
 
     if(key == GLFW_KEY_ESCAPE) {
-      if(this.menuState == MenuState.RENDER_3) {
+      if(this.state == State.RENDER_3) {
         playSound(3);
-        this.FUN_8010a844(MenuState.UNLOAD_19);
-      } else if(this.menuState == MenuState.BUY_4) {
+        this.FUN_8010a844(State.UNLOAD_19);
+      } else if(this.state == State.BUY_4) {
         playSound(3);
-        this.menuState = MenuState.INIT_2;
-      } else if(this.menuState == MenuState.BUY_SELECT_CHAR_5) {
+        this.state = State.INIT_2;
+      } else if(this.state == State.BUY_SELECT_CHAR_5) {
         playSound(3);
-        this.menuState = MenuState.BUY_4;
+        this.state = State.BUY_4;
         unloadRenderable(this.charHighlight);
         this.charHighlight = null;
-      } else if(this.menuState == MenuState.SELL_10) {
+      } else if(this.state == State.SELL_10) {
         playSound(3);
         unloadRenderable(this.selectedMenuOptionRenderablePtr_800bdbe4);
-        this.menuState = MenuState.INIT_2;
+        this.state = State.INIT_2;
       }
     }
   }
 
-  public enum MenuState {
+  public enum State {
     INIT_0,
     AWAIT_INIT_1,
     INIT_2,

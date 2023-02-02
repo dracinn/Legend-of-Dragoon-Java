@@ -27,8 +27,13 @@ public class SaveGameScreen extends SaveListScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.SAVE_GAME;
+  }
+
+  @Override
+  public Enum getState() {
+    return null;
   }
 
   @Override

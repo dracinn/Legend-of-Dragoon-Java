@@ -43,8 +43,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
-public class ItemListScreen extends MenuScreen {
-  private int loadingStage;
+public class ItemListScreen extends MenuScreen<ItemListScreen.State> {
+  private State loadingStage;
   private double scrollAccumulator;
   private final Runnable unload;
 
@@ -73,14 +73,19 @@ public class ItemListScreen extends MenuScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.ITEM_LIST;
+  }
+
+  @Override
+  public State getState() {
+    return this.loadingStage;
   }
 
   @Override
   protected void render() {
     switch(this.loadingStage) {
-      case 0 -> {
+      case INIT -> {
         scriptStartEffect(2, 10);
         deallocateRenderables(0xff);
         renderGlyphs(goodsGlyphs_801141c4, 0, 0);
@@ -96,10 +101,10 @@ public class ItemListScreen extends MenuScreen {
         FUN_80104b60(this.itemHighlight);
         this.equippedItemsCount = FUN_80104738(this.equipment, this.items, 0x1L);
         this.renderItemList(this.slotScrollEquipment, this.slotScrollItem, 0xff, 0xff);
-        this.loadingStage++;
+        this.loadingStage = State.ITEM_LIST;
       }
 
-      case 1 -> {
+      case ITEM_LIST -> {
         this.renderItemList(this.slotScrollEquipment, this.slotScrollItem, this.currentItemId, 0);
 
         if(this.scrollAccumulator >= 1.0d) {
@@ -144,7 +149,7 @@ public class ItemListScreen extends MenuScreen {
       }
 
       // Fade out
-      case 100 -> {
+      case UNLOAD -> {
         this.renderItemList(this.slotScrollEquipment, this.slotScrollItem, this.currentItemId, 0);
         this._800bdba0 = null;
 
@@ -201,7 +206,7 @@ public class ItemListScreen extends MenuScreen {
     this.mouseX = x;
     this.mouseY = y;
 
-    if(this.loadingStage == 1) {
+    if(this.loadingStage == State.ITEM_LIST) {
       for(int i = 0; i < Math.min(7, gameState_800babc8.equipmentCount_1e4.get() - this.slotScrollEquipment); i++) {
         if(this.selectedSlotEquipment != i && MathHelper.inBox(x, y, 8, 31 + FUN_800fc814(i), 174, 17)) {
           playSound(1);
@@ -228,7 +233,7 @@ public class ItemListScreen extends MenuScreen {
       return;
     }
 
-    if(this.loadingStage == 1 && button == GLFW_MOUSE_BUTTON_LEFT) {
+    if(this.loadingStage == State.ITEM_LIST && button == GLFW_MOUSE_BUTTON_LEFT) {
       for(int i = 0; i < Math.min(7, gameState_800babc8.equipmentCount_1e4.get() - this.slotScrollEquipment); i++) {
         if(MathHelper.inBox(x, y, 8, 31 + FUN_800fc814(i), 174, 17)) {
           playSound(1);
@@ -277,9 +282,9 @@ public class ItemListScreen extends MenuScreen {
       return;
     }
 
-    if(this.loadingStage == 1) {
+    if(this.loadingStage == State.ITEM_LIST) {
       if(key == GLFW_KEY_ESCAPE) {
-        this.loadingStage = 100;
+        this.loadingStage = State.UNLOAD;
       }
 
       if(key == GLFW_KEY_S) { // Sort items
@@ -292,7 +297,7 @@ public class ItemListScreen extends MenuScreen {
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.loadingStage != 1) {
+    if(this.loadingStage != State.ITEM_LIST) {
       return;
     }
 
@@ -301,5 +306,11 @@ public class ItemListScreen extends MenuScreen {
     }
 
     this.scrollAccumulator += deltaY;
+  }
+
+  public enum State {
+    INIT,
+    ITEM_LIST,
+    UNLOAD,
   }
 }

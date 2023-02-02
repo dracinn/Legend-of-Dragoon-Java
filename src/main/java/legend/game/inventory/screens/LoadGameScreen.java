@@ -29,13 +29,18 @@ public class LoadGameScreen extends SaveListScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.LOAD_GAME;
   }
 
   @Override
   protected int menuCount() {
     return saves.size();
+  }
+
+  @Override
+  public Enum getState() {
+    return null;
   }
 
   @Override

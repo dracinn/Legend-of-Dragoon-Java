@@ -23,6 +23,7 @@ import legend.game.combat.types.CombatantStruct1a8;
 import legend.game.inventory.WhichMenu;
 import legend.game.inventory.screens.MainMenuScreen;
 import legend.game.inventory.screens.MenuStack;
+import legend.game.inventory.screens.MessageBoxScreen;
 import legend.game.inventory.screens.TooManyItemsScreen;
 import legend.game.scripting.ScriptState;
 import legend.game.types.ActiveStatsa0;
@@ -567,7 +568,7 @@ public final class SItem {
     switch(inventoryMenuState_800bdc28.get()) {
       case INIT_0 -> { // Initialize, loads some files (unknown contents)
         _800bdc34.setu(0);
-        messageBox_8011dc90.state_0c = 0;
+        messageBox_8011dc90.state_0c = MessageBoxScreen.State._0;
         loadCharacterStats(0);
 
         if(mainCallbackIndex_8004dd20.get() == 8) {
@@ -2820,25 +2821,25 @@ public final class SItem {
     final Renderable58 renderable;
 
     switch(messageBox.state_0c) {
-      case 0:
+      case _0:
         return MessageBoxResult.YES;
 
-      case 1: // Allocate
-        messageBox.state_0c = 2;
+      case _1: // Allocate
+        messageBox.state_0c = MessageBoxScreen.State._2;
         messageBox.renderable_04 = null;
         messageBox.renderable_08 = allocateUiElement(149, 142, messageBox.x_1c - 50, messageBox.y_1e - 10);
         messageBox.renderable_08.z_3c = 32;
         messageBox.renderable_08._18 = 142;
         msgboxResult_8011e1e8.set(MessageBoxResult.AWAITING_INPUT);
 
-      case 2:
+      case _2:
         if(messageBox.renderable_08._0c != 0) {
-          messageBox.state_0c = 3;
+          messageBox.state_0c = MessageBoxScreen.State._3;
         }
 
         break;
 
-      case 3:
+      case _3:
         textZ_800bdf00.set(31);
         final int x = messageBox.x_1c + 60;
         int y = messageBox.y_1e + 7;
@@ -2859,7 +2860,7 @@ public final class SItem {
           //LAB_8010eed8
           if((inventoryJoypadInput_800bdc44.get() & 0x60) != 0) {
             playSound(2);
-            messageBox.state_0c = 4;
+            messageBox.state_0c = MessageBoxScreen.State._4;
             msgboxResult_8011e1e8.set(MessageBoxResult.YES);
           }
 
@@ -2887,8 +2888,8 @@ public final class SItem {
 
         break;
 
-      case 4:
-        messageBox.state_0c = 5;
+      case _4:
+        messageBox.state_0c = MessageBoxScreen.State._5;
 
         if(messageBox.renderable_04 != null) {
           unloadRenderable(messageBox.renderable_04);
@@ -2902,15 +2903,15 @@ public final class SItem {
         messageBox.renderable_08.flags_00 |= 0x10;
         break;
 
-      case 5:
+      case _5:
         if(messageBox.renderable_08._0c != 0) {
-          messageBox.state_0c = 6;
+          messageBox.state_0c = MessageBoxScreen.State._6;
         }
 
         break;
 
-      case 6:
-        messageBox.state_0c = 0;
+      case _6:
+        messageBox.state_0c = MessageBoxScreen.State._0;
         return msgboxResult_8011e1e8.get();
     }
 
@@ -2954,7 +2955,7 @@ public final class SItem {
     messageBox.type_15 = type;
     messageBox.menuIndex_18 = 0;
     messageBox.ticks_10 = 0;
-    messageBox.state_0c = 1;
+    messageBox.state_0c = MessageBoxScreen.State._1;
   }
 
   @Method(0x80110030L)

@@ -71,8 +71,8 @@ import static legend.game.Scus94491BpeSegment_800b.submapIndex_800bd808;
 import static legend.game.Scus94491BpeSegment_800b.textZ_800bdf00;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 
-public class MainMenuScreen extends MenuScreen {
-  private int loadingStage;
+public class MainMenuScreen extends MenuScreen<MainMenuScreen.State> {
+  private State loadingStage;
   private final Runnable unload;
 
   private int selectedMenuOption;
@@ -85,21 +85,35 @@ public class MainMenuScreen extends MenuScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.MAIN_MENU;
+  }
+
+  @Override
+  public State getState() {
+    return this.loadingStage;
+  }
+
+  public enum State {
+    INIT_1,
+    INIT_2,
+    MAIN_MENU,
+    CONFIG,
+    FADE_OUT,
+    UNLOAD,
   }
 
   @Override
   protected void render() {
     switch(this.loadingStage) {
-      case 0 -> {
+      case INIT_1 -> {
         recalcInventory();
         FUN_80103b10();
         scriptStartEffect(2, 10);
-        this.loadingStage++;
+        this.loadingStage = State.INIT_2;
       }
 
-      case 1 -> {
+      case INIT_2 -> {
         deallocateRenderables(0xff);
         renderGlyphs(glyphs_80114130, 0, 0);
         this.selectedMenuOptionRenderable = allocateUiElement(115, 115, 29, getMenuOptionY(this.selectedMenuOption));
@@ -108,16 +122,16 @@ public class MainMenuScreen extends MenuScreen {
         this.FUN_80102484(0);
         this.renderItemSubmenu(this.selectedItemSubmenuOption, 4);
         this.renderInventoryMenu(this.selectedMenuOption, 4, 0xff);
-        this.loadingStage++;
+        this.loadingStage = State.MAIN_MENU;
       }
 
-      case 2 -> {
+      case MAIN_MENU -> {
         this.FUN_80102484(0);
         this.renderItemSubmenu(this.selectedItemSubmenuOption, 4);
         this.renderInventoryMenu(this.selectedMenuOption, 4, 0);
       }
 
-      case 3 -> {
+      case CONFIG -> {
         messageBox(messageBox_8011dc90);
 
         if(messageBox_8011dc90.ticks_10 >= 2) {
@@ -166,14 +180,14 @@ public class MainMenuScreen extends MenuScreen {
       }
 
       // Fade out
-      case 100 -> {
+      case FADE_OUT -> {
         this.renderInventoryMenu(this.selectedMenuOption, 4, 0);
         scriptStartEffect(1, 10);
-        this.loadingStage++;
+        this.loadingStage = State.UNLOAD;
       }
 
       // Unload
-      case 101 -> {
+      case UNLOAD -> {
         this.renderInventoryMenu(this.selectedMenuOption, 4, 0);
 
         if(_800bb168.get() >= 0xff) {
@@ -278,7 +292,7 @@ public class MainMenuScreen extends MenuScreen {
 
   @Override
   protected void mouseMove(final int x, final int y) {
-    if(this.loadingStage == 2) {
+    if(this.loadingStage == State.MAIN_MENU) {
       for(int i = 0; i < 6; i++) {
         if(this.selectedMenuOption != i && MathHelper.inBox(x, y, 22, getMenuOptionY(i) + 2, 84, 13)) {
           playSound(1);
@@ -299,7 +313,7 @@ public class MainMenuScreen extends MenuScreen {
 
   @Override
   protected void mouseClick(final int x, final int y, final int button, final int mods) {
-    if(this.loadingStage == 2) {
+    if(this.loadingStage == State.MAIN_MENU) {
       for(int i = 0; i < 6; i++) {
         if(MathHelper.inBox(x, y, 22, getMenuOptionY(i) + 2, 84, 13)) {
           this.selectedMenuOption = i;
@@ -311,7 +325,7 @@ public class MainMenuScreen extends MenuScreen {
 
               menuStack.pushScreen(new StatusScreen(() -> {
                 menuStack.popScreen();
-                this.loadingStage = 0;
+                this.loadingStage = State.INIT_1;
               }));
             }
 
@@ -320,7 +334,7 @@ public class MainMenuScreen extends MenuScreen {
 
               menuStack.pushScreen(new EquipmentScreen(() -> {
                 menuStack.popScreen();
-                this.loadingStage = 0;
+                this.loadingStage = State.INIT_1;
               }));
             }
 
@@ -329,7 +343,7 @@ public class MainMenuScreen extends MenuScreen {
 
               menuStack.pushScreen(new AdditionsScreen(() -> {
                 menuStack.popScreen();
-                this.loadingStage = 0;
+                this.loadingStage = State.INIT_1;
               }));
             }
 
@@ -338,7 +352,7 @@ public class MainMenuScreen extends MenuScreen {
 
               menuStack.pushScreen(new CharSwapScreen(() -> {
                 menuStack.popScreen();
-                this.loadingStage = 0;
+                this.loadingStage = State.INIT_1;
               }));
             }
 
@@ -346,7 +360,7 @@ public class MainMenuScreen extends MenuScreen {
               playSound(4);
               this.selectedItemSubmenuOption = 0;
               setMessageBoxText(messageBox_8011dc90, null, 0x1);
-              this.loadingStage = 3;
+              this.loadingStage = State.CONFIG;
             }
 
             case 5 -> {
@@ -356,7 +370,7 @@ public class MainMenuScreen extends MenuScreen {
                 menuStack.pushScreen(new SaveGameScreen(() -> {
                   menuStack.popScreen();
                   this.fadeOutArrows();
-                  this.loadingStage = 0;
+                  this.loadingStage = State.INIT_1;
                 }));
               } else {
                 playSound(40);
@@ -376,33 +390,33 @@ public class MainMenuScreen extends MenuScreen {
 
             menuStack.pushScreen(new UseItemScreen(() -> {
               menuStack.popScreen();
-              this.loadingStage = 0;
+              this.loadingStage = State.INIT_1;
             }));
           } else if(i == 1) {
             playSound(2);
 
             menuStack.pushScreen(new ItemListScreen(() -> {
               menuStack.popScreen();
-              this.loadingStage = 0;
+              this.loadingStage = State.INIT_1;
             }));
           } else if(i == 2) {
             playSound(2);
 
             menuStack.pushScreen(new GoodsScreen(() -> {
               menuStack.popScreen();
-              this.loadingStage = 0;
+              this.loadingStage = State.INIT_1;
             }));
           } else {
             playSound(2);
 
             menuStack.pushScreen(new DabasScreen(() -> {
               menuStack.popScreen();
-              this.loadingStage = 0;
+              this.loadingStage = State.INIT_1;
             }));
           }
         }
       }
-    } else if(this.loadingStage == 3) {
+    } else if(this.loadingStage == State.CONFIG) {
       if(MathHelper.inBox(x, y, this.FUN_800fc7bc(1) - 28, this.menuOptionY(0), 56, 13)) {
         playSound(2);
         gameState_800babc8.vibrationEnabled_4e1.set(0);
@@ -440,15 +454,15 @@ public class MainMenuScreen extends MenuScreen {
 
   @Override
   protected void keyPress(final int key, final int scancode, final int mods) {
-    if(this.loadingStage == 2) {
+    if(this.loadingStage == State.MAIN_MENU) {
       if(key == GLFW_KEY_ESCAPE) {
         playSound(3);
-        this.loadingStage = 100;
+        this.loadingStage = State.FADE_OUT;
       }
-    } else if(this.loadingStage == 3) {
+    } else if(this.loadingStage == State.CONFIG) {
       playSound(2);
-      messageBox_8011dc90.state_0c++;
-      this.loadingStage = 1;
+      messageBox_8011dc90.state_0c = messageBox_8011dc90.state_0c.next();
+      this.loadingStage = State.INIT_2;
     }
   }
 

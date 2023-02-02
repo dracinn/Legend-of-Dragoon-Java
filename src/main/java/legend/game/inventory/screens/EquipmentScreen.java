@@ -41,8 +41,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 
-public class EquipmentScreen extends MenuScreen {
-  private int loadingStage;
+public class EquipmentScreen extends MenuScreen<EquipmentScreen.State> {
+  private State loadingStage;
   private double scrollAccumulator;
   private final Runnable unload;
 
@@ -63,25 +63,30 @@ public class EquipmentScreen extends MenuScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.EQUIPMENT;
+  }
+
+  @Override
+  public State getState() {
+    return null;
   }
 
   @Override
   protected void render() {
     switch(this.loadingStage) {
-      case 0:
+      case INIT_1:
         recalcInventory();
         scriptStartEffect(2, 10);
         deallocateRenderables(0xff);
-        this.loadingStage++;
+        this.loadingStage = State.INIT_2;
 
-      case 1:
+      case INIT_2:
         this.slotScroll = 0;
         this.selectedSlot = 0;
-        this.loadingStage++;
+        this.loadingStage = State.INIT_3;
 
-      case 2:
+      case INIT_3:
         deallocateRenderables(0);
         renderGlyphs(equipmentGlyphs_80114180, 0, 0);
 
@@ -93,10 +98,10 @@ public class EquipmentScreen extends MenuScreen {
         this.itemHighlight.y_44 = this.FUN_800fc804(this.selectedSlot);
         this.equipmentCount = this.getEquippableItemsForCharacter(characterIndices_800bdbb8.get(this.charSlot).get());
         this.FUN_80102660(this.charSlot, this.selectedSlot, this.slotScroll, 0xff);
-        this.loadingStage++;
+        this.loadingStage = State.EQUIPMENT;
         break;
 
-      case 3:
+      case EQUIPMENT:
         FUN_801034cc(this.charSlot, characterCount_8011d7c4.get());
         this.FUN_80102660(this.charSlot, this.selectedSlot, this.slotScroll, 0);
 
@@ -119,7 +124,7 @@ public class EquipmentScreen extends MenuScreen {
         break;
 
       // Fade out
-      case 100:
+      case UNLOAD:
         this.FUN_80102660(this.charSlot, this.selectedSlot, this.slotScroll, 0);
         this.unload.run();
         break;
@@ -182,7 +187,7 @@ public class EquipmentScreen extends MenuScreen {
 
   @Override
   protected void mouseMove(final int x, final int y) {
-    if(this.loadingStage != 3) {
+    if(this.loadingStage != State.EQUIPMENT) {
       return;
     }
 
@@ -197,7 +202,7 @@ public class EquipmentScreen extends MenuScreen {
 
   @Override
   protected void mouseClick(final int x, final int y, final int button, final int mods) {
-    if(this.loadingStage != 3) {
+    if(this.loadingStage != State.EQUIPMENT) {
       return;
     }
 
@@ -217,7 +222,7 @@ public class EquipmentScreen extends MenuScreen {
             loadCharacterStats(0);
             addHp(characterIndices_800bdbb8.get(this.charSlot).get(), 0);
             addMp(characterIndices_800bdbb8.get(this.charSlot).get(), 0);
-            this.loadingStage = 2;
+            this.loadingStage = State.INIT_3;
           } else {
             playSound(40);
           }
@@ -228,7 +233,7 @@ public class EquipmentScreen extends MenuScreen {
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.loadingStage != 3) {
+    if(this.loadingStage != State.EQUIPMENT) {
       return;
     }
 
@@ -241,24 +246,24 @@ public class EquipmentScreen extends MenuScreen {
 
   @Override
   protected void keyPress(final int key, final int scancode, final int mods) {
-    if(this.loadingStage != 3) {
+    if(this.loadingStage != State.EQUIPMENT) {
       return;
     }
 
     // Exit menu
     if(key == GLFW_KEY_ESCAPE) {
       playSound(3);
-      this.loadingStage = 100;
+      this.loadingStage = State.UNLOAD;
     }
 
     if(key == GLFW_KEY_LEFT && this.charSlot > 0) {
       this.charSlot--;
-      this.loadingStage = 1;
+      this.loadingStage = State.INIT_2;
     }
 
     if(key == GLFW_KEY_RIGHT && this.charSlot < characterCount_8011d7c4.get() - 1) {
       this.charSlot++;
-      this.loadingStage = 1;
+      this.loadingStage = State.INIT_2;
     }
 
     // Sort items
@@ -266,7 +271,15 @@ public class EquipmentScreen extends MenuScreen {
       playSound(2);
       FUN_80104738(this.equipment, this.items, 1);
       sortItems(this.equipment, gameState_800babc8.equipment_1e8, gameState_800babc8.equipmentCount_1e4.get());
-      this.loadingStage = 2;
+      this.loadingStage = State.INIT_3;
     }
+  }
+
+  public enum State {
+    INIT_1,
+    INIT_2,
+    INIT_3,
+    EQUIPMENT,
+    UNLOAD,
   }
 }

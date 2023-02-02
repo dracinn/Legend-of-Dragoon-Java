@@ -33,8 +33,8 @@ import static legend.game.Scus94491BpeSegment_800b.gameState_800babc8;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
 import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
 
-public class AdditionsScreen extends MenuScreen {
-  private int loadingStage;
+public class AdditionsScreen extends MenuScreen<AdditionsScreen.State> {
+  private State loadingStage;
   private double scrollAccumulator;
   private final Runnable unload;
 
@@ -49,23 +49,28 @@ public class AdditionsScreen extends MenuScreen {
   }
 
   @Override
-  protected MenuId menuId() {
+  public MenuId menuId() {
     return MenuId.ADDITIONS;
+  }
+
+  @Override
+  public State getState() {
+    return this.loadingStage;
   }
 
   @Override
   protected void render() {
     switch(this.loadingStage) {
-      case 0 -> {
+      case INIT_1 -> {
         this.charSlot = 0;
         this.selectedSlot = 0;
         this.additionHighlight = null;
         scriptStartEffect(2, 10);
         deallocateRenderables(0xff);
-        this.loadingStage++;
+        this.loadingStage = State.INIT_2;
       }
 
-      case 1 -> {
+      case INIT_2 -> {
         deallocateRenderables(0);
         loadAdditions(characterIndices_800bdbb8.get(this.charSlot).get(), this.additions);
 
@@ -77,10 +82,10 @@ public class AdditionsScreen extends MenuScreen {
         allocateUiElement(69, 69,   0, 0);
         allocateUiElement(70, 70, 192, 0);
         this.renderAdditions(this.charSlot, this.additions, gameState_800babc8.charData_32c.get(characterIndices_800bdbb8.get(this.charSlot).get()).selectedAddition_19.get(), 0xffL);
-        this.loadingStage++;
+        this.loadingStage = State.ADDITIONS;
       }
 
-      case 2 -> {
+      case ADDITIONS -> {
         FUN_801034cc(this.charSlot, characterCount_8011d7c4.get());
         this.renderAdditions(this.charSlot, this.additions, gameState_800babc8.charData_32c.get(characterIndices_800bdbb8.get(this.charSlot).get()).selectedAddition_19.get(), 0);
 
@@ -102,7 +107,7 @@ public class AdditionsScreen extends MenuScreen {
       }
 
       // Fade out
-      case 100 -> {
+      case UNLOAD -> {
         this.renderAdditions(this.charSlot, this.additions, gameState_800babc8.charData_32c.get(characterIndices_800bdbb8.get(this.charSlot).get()).selectedAddition_19.get(), 0);
         this.unload.run();
       }
@@ -163,12 +168,12 @@ public class AdditionsScreen extends MenuScreen {
     playSound(1);
     this.charSlot = scroll;
     unloadRenderable(this.additionHighlight);
-    this.loadingStage = 1;
+    this.loadingStage = State.INIT_2;
   }
 
   @Override
   protected void mouseMove(final int x, final int y) {
-    if(this.loadingStage != 2) {
+    if(this.loadingStage != State.ADDITIONS) {
       return;
     }
 
@@ -183,7 +188,7 @@ public class AdditionsScreen extends MenuScreen {
 
   @Override
   protected void mouseClick(final int x, final int y, final int button, final int mods) {
-    if(this.loadingStage != 2 || mods != 0) {
+    if(this.loadingStage != State.ADDITIONS || mods != 0) {
       return;
     }
 
@@ -199,7 +204,7 @@ public class AdditionsScreen extends MenuScreen {
             gameState_800babc8.charData_32c.get(characterIndices_800bdbb8.get(this.charSlot).get()).selectedAddition_19.set(additionOffset);
             playSound(2);
             unloadRenderable(this.additionHighlight);
-            this.loadingStage = 1;
+            this.loadingStage = State.INIT_2;
           } else {
             playSound(40);
           }
@@ -210,19 +215,19 @@ public class AdditionsScreen extends MenuScreen {
 
   @Override
   protected void keyPress(final int key, final int scancode, final int mods) {
-    if(this.loadingStage != 2 || mods != 0) {
+    if(this.loadingStage != State.ADDITIONS || mods != 0) {
       return;
     }
 
     if(key == GLFW_KEY_ESCAPE) {
       playSound(3);
-      this.loadingStage = 100;
+      this.loadingStage = State.UNLOAD;
     }
   }
 
   @Override
   protected void mouseScroll(final double deltaX, final double deltaY) {
-    if(this.loadingStage != 2) {
+    if(this.loadingStage != State.ADDITIONS) {
       return;
     }
 
@@ -231,5 +236,12 @@ public class AdditionsScreen extends MenuScreen {
     }
 
     this.scrollAccumulator += deltaY;
+  }
+
+  public enum State {
+    INIT_1,
+    INIT_2,
+    ADDITIONS,
+    UNLOAD,
   }
 }
